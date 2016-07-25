@@ -566,29 +566,32 @@ static char UIViewKeyboardOpened;
 
 - (void)swizzled_addSubview:(UIView *)subview
 {
-    if (!subview.inputAccessoryView)
+    if(subview != self)
     {
-        if ([subview isKindOfClass:[UITextField class]])
+        if (!subview.inputAccessoryView)
         {
-            UITextField *textField = (UITextField *)subview;
-            if ([textField respondsToSelector:@selector(setInputAccessoryView:)])
+            if ([subview isKindOfClass:[UITextField class]])
             {
-                UIView *nullView = [[UIView alloc] initWithFrame:CGRectZero];
-                nullView.backgroundColor = [UIColor clearColor];
-                textField.inputAccessoryView = nullView;
+                UITextField *textField = (UITextField *)subview;
+                if ([textField respondsToSelector:@selector(setInputAccessoryView:)])
+                {
+                    UIView *nullView = [[UIView alloc] initWithFrame:CGRectZero];
+                    nullView.backgroundColor = [UIColor clearColor];
+                    textField.inputAccessoryView = nullView;
+                }
+            }
+            else if ([subview isKindOfClass:[UITextView class]]) {
+                UITextView *textView = (UITextView *)subview;
+                if ([textView respondsToSelector:@selector(setInputAccessoryView:)] && [textView respondsToSelector:@selector(isEditable)] && textView.isEditable)
+                {
+                    UIView *nullView = [[UIView alloc] initWithFrame:CGRectZero];
+                    nullView.backgroundColor = [UIColor clearColor];
+                    textView.inputAccessoryView = nullView;
+                }
             }
         }
-        else if ([subview isKindOfClass:[UITextView class]]) {
-            UITextView *textView = (UITextView *)subview;
-            if ([textView respondsToSelector:@selector(setInputAccessoryView:)] && [textView respondsToSelector:@selector(isEditable)] && textView.isEditable)
-            {
-                UIView *nullView = [[UIView alloc] initWithFrame:CGRectZero];
-                nullView.backgroundColor = [UIColor clearColor];
-                textView.inputAccessoryView = nullView;
-            }
-        }
+        [self swizzled_addSubview:subview];
     }
-    [self swizzled_addSubview:subview];
 }
 
 #pragma mark - Property Methods
